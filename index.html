@@ -125,7 +125,8 @@ footer{padding:32px 0 48px;color:var(--muted);font-size:14px;border-top:1px soli
 @media (max-width:720px){.evolve{grid-template-columns:1fr}}
 .credit{font-size:15px;color:var(--muted);margin-top:22px}
 /* even line endings */
-main p,.layers span,.evolve span,.skills p{text-align:justify;-webkit-hyphens:auto;hyphens:auto;text-wrap:pretty}
+main p,.layers span,.evolve span,.skills p{text-wrap:pretty}
+@media (min-width:700px){main p,.layers span,.evolve span,.skills p{text-align:justify;-webkit-hyphens:auto;hyphens:auto}}
 .results span,.stack,.me figcaption,.featured p[style],.credit{text-align:left;-webkit-hyphens:manual;hyphens:manual}
 /* the one moving thing */
 </style>

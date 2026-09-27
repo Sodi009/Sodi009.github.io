@@ -96,7 +96,8 @@ code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;bac
 @media (max-width:560px){.keyres div{border-right:0;border-bottom:1px solid var(--line)}.keyres div:last-child{border-bottom:0}}
 
 /* even line endings */
-article p,article li,.abstract{text-align:justify;-webkit-hyphens:auto;hyphens:auto;text-wrap:pretty}
+article p,article li,.abstract{text-wrap:pretty}
+@media (min-width:700px){article p,article li,.abstract{text-align:justify;-webkit-hyphens:auto;hyphens:auto}}
 .title .sub,.keyres span,figcaption,.note,caption{text-align:left;-webkit-hyphens:manual;hyphens:manual}
 @media (max-width:560px){.keyres{grid-template-columns:1fr 1fr}.keyres div{border-bottom:0}.keyres div:nth-child(odd){border-right:1px solid var(--line)}.keyres div:nth-child(-n+2){border-bottom:1px solid var(--line)}}
 footer{border-top:1px solid var(--line);padding:28px 24px 48px;color:var(--muted);font-size:14px;text-align:center}
