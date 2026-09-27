@@ -37,7 +37,7 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--signal);outline-off
 header{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--paper);border-bottom:1px solid var(--line)}
 header .bar{max-width:1120px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:60px;gap:16px}
 .mark{font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:700;font-size:20px;text-decoration:none;color:var(--ink)}
-.back{color:var(--muted);text-decoration:none;font-size:15px}
+.back{color:var(--muted);text-decoration:none;font-size:15px;padding:10px 0}
 .back:hover{color:var(--ink)}
 .theme{background:none;border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:4px 10px;font:inherit;font-size:14px;cursor:pointer}
 .hdr-right{display:flex;gap:16px;align-items:center}
@@ -49,7 +49,7 @@ header .bar{max-width:1120px;margin:0 auto;padding:0 24px;display:flex;align-ite
 .toc li{margin:4px 0}
 .toc a{color:var(--muted);text-decoration:none}
 .toc a:hover{color:var(--ink)}
-@media (max-width:900px){.layout{grid-template-columns:1fr;gap:0}.toc{position:static;padding-top:24px;border-bottom:1px solid var(--line);padding-bottom:20px}}
+@media (max-width:900px){.layout{grid-template-columns:minmax(0,1fr);gap:0}.toc{position:static;padding-top:24px;border-bottom:1px solid var(--line);padding-bottom:20px}}
 
 article{max-width:72ch;padding:48px 0 80px}
 .title h1{font-size:clamp(34px,5vw,52px);font-weight:700}
