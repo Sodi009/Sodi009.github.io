@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Smart Cart — Senior Project Report</title>
+<meta name="description" content="Smart Cart: an autonomous person-following shopping cart with UHF RFID billing, built on a Raspberry Pi 5 and three ESP32 boards.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F7F8FA; --surface:#FFFFFF; --ink:#17202E; --muted:#5A6474;
+  --line:#DDE2E8; --board:#1F6B4F; --board-soft:#E6F0EB; --signal:#2F5BD3; --warn:#B4452F;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#10151D; --surface:#171E28; --ink:#E7EBF0; --muted:#98A2B3;
+    --line:#2A3441; --board:#5CC39A; --board-soft:#16302A; --signal:#7C9BFF; --warn:#F08A72;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#10151D; --surface:#171E28; --ink:#E7EBF0; --muted:#98A2B3;
+  --line:#2A3441; --board:#5CC39A; --board-soft:#16302A; --signal:#7C9BFF; --warn:#F08A72;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-behavior:smooth;scroll-padding-top:calc(env(safe-area-inset-top,0px) + 72px)}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 17px/1.65 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:"IBM Plex Sans Condensed","Arial Narrow",system-ui,sans-serif;line-height:1.15;margin:0}
+a{color:var(--board)}
+a:focus-visible,button:focus-visible{outline:3px solid var(--signal);outline-offset:3px;border-radius:4px}
+
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--paper);border-bottom:1px solid var(--line)}
+header .bar{max-width:1120px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:60px;gap:16px}
+.mark{font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:700;font-size:20px;text-decoration:none;color:var(--ink)}
+.back{color:var(--muted);text-decoration:none;font-size:15px}
+.back:hover{color:var(--ink)}
+.theme{background:none;border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:4px 10px;font:inherit;font-size:14px;cursor:pointer}
+.hdr-right{display:flex;gap:16px;align-items:center}
+
+.layout{max-width:1120px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:220px minmax(0,1fr);gap:56px}
+.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 84px);align-self:start;padding-top:48px;font-size:14px}
+.toc b{display:block;font-weight:600;margin-bottom:8px}
+.toc ol{margin:0;padding-left:18px;color:var(--muted)}
+.toc li{margin:4px 0}
+.toc a{color:var(--muted);text-decoration:none}
+.toc a:hover{color:var(--ink)}
+@media (max-width:900px){.layout{grid-template-columns:1fr;gap:0}.toc{position:static;padding-top:24px;border-bottom:1px solid var(--line);padding-bottom:20px}}
+
+article{max-width:72ch;padding:48px 0 80px}
+.title h1{font-size:clamp(34px,5vw,52px);font-weight:700}
+.title .sub{color:var(--muted);margin:14px 0 0;font-size:16px}
+.people{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:28px 0 0;padding:18px 20px;background:var(--surface);border:1px solid var(--line);border-radius:12px;font-size:15px}
+.people b{display:block;font-weight:600;margin-bottom:2px}
+.people span{color:var(--muted)}
+@media (max-width:560px){.people{grid-template-columns:1fr}}
+
+.abstract{margin:32px 0 0;padding:4px 0 4px 20px;border-left:3px solid var(--board);font-family:"IBM Plex Serif",Georgia,serif;line-height:1.75}
+
+section{margin-top:56px}
+section h2{font-size:30px;margin-bottom:16px}
+section h2 .n{color:var(--muted);font-weight:500;margin-right:10px}
+section h3{font-size:21px;margin:30px 0 8px}
+p{margin:0 0 14px}
+ul.plain,ol.plain{margin:0 0 14px;padding-left:22px}
+ul.plain li,ol.plain li{margin:6px 0}
+
+.tbl{overflow-x:auto;margin:18px 0 22px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:15px;min-width:520px}
+caption{caption-side:top;text-align:left;padding:12px 14px 4px;font-size:14px;color:var(--muted)}
+th,td{text-align:left;padding:9px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;background:var(--board-soft)}
+tr:last-child td{border-bottom:0}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+
+.eq{margin:16px 0 20px;padding:14px 18px;background:var(--surface);border:1px solid var(--line);border-radius:10px;font-family:"IBM Plex Serif",Georgia,serif;font-size:18px;overflow-x:auto;white-space:nowrap}
+.eq small{font-family:"IBM Plex Sans",sans-serif;font-size:14px;color:var(--muted);margin-left:14px}
+
+figure.fig{margin:22px 0 26px;padding:18px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+figure.fig svg{display:block;width:100%;height:auto}
+figure.fig figcaption{font-size:14px;color:var(--muted);margin-top:10px}
+.svgtext{font-family:"IBM Plex Sans",system-ui,sans-serif}
+
+.note{font-size:15px;color:var(--muted)}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;background:var(--board-soft);padding:1px 5px;border-radius:4px}
+
+.keyres{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:22px 0}
+.keyres div{padding:14px 16px;border-right:1px solid var(--line);background:var(--surface)}
+.keyres div:last-child{border-right:0}
+.keyres b{display:block;font-family:"IBM Plex Sans Condensed",sans-serif;font-size:24px;font-weight:600;color:var(--board)}
+.keyres span{font-size:14px;color:var(--muted)}
+@media (max-width:560px){.keyres div{border-right:0;border-bottom:1px solid var(--line)}.keyres div:last-child{border-bottom:0}}
+
+footer{border-top:1px solid var(--line);padding:28px 24px 48px;color:var(--muted);font-size:14px;text-align:center}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="bar">
+    <a class="mark" href="index.html">Hein Zin</a>
+    <div class="hdr-right">
+      <a class="back" href="index.html#projects">Back to portfolio</a>
+      <button class="theme" id="themeBtn" type="button" aria-label="Switch colour theme">Theme</button>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" aria-label="Report contents">
+    <b>Contents</b>
+    <ol>
+      <li><a href="#intro">Introduction</a></li>
+      <li><a href="#related">Related work</a></li>
+      <li><a href="#evolution">Design evolution</a></li>
+      <li><a href="#hardware">Hardware design</a></li>
+      <li><a href="#kinematics">Kinematics</a></li>
+      <li><a href="#software">Software design</a></li>
+      <li><a href="#results">Experiments and results</a></li>
+      <li><a href="#discussion">Discussion</a></li>
+      <li><a href="#future">Future work</a></li>
+      <li><a href="#conclusion">Conclusion</a></li>
+    </ol>
+  </nav>
+
+  <article>
+    <div class="title">
+      <h1>Smart Cart System Using Raspberry Pi 5 with RFID and Human Following Mechanism</h1>
+      <p class="sub">Senior project report. Vincent Mary School of Engineering, Science and Technology, Assumption University, Thailand. October 2026.</p>
+    </div>
+
+    <div class="people">
+      <div><b>Team</b><span>Hein Su Aung (Mechatronics Eng. &amp; AI)<br>Hein Zin (Electrical &amp; Computer Eng.)<br>Khant Min Lu (Electrical &amp; Computer Eng.)<br>Myat Bhone Paing (Mechatronics Eng. &amp; AI)</span></div>
+      <div><b>Project advisors</b><span>Dr. Amulya Bhattarai<br>Mr. Krid Sakunkawinkorn</span></div>
+    </div>
+
+    <div class="keyres" aria-label="Key results">
+      <div><b>0.46 m</b><span>mean following distance, target 0.4 m</span></div>
+      <div><b>0</b><span>collisions in 25 obstacle trials</span></div>
+      <div><b>90%</b><span>user re-acquired after occlusion</span></div>
+      <div><b>15–17 fps</b><span>person detection on CPU only</span></div>
+    </div>
+
+    <p class="abstract">Smart Cart is an autonomous trolley that follows a chosen user at a fixed distance, guards against obstacles, and bills products automatically with UHF RFID. All perception and decisions run on the cart. A Raspberry Pi 5 runs YOLO-based person detection fused with a depth camera to estimate the user's distance and bearing in real time. Two ESP32 boards handle low-level work in parallel: one drives the motors with encoder and gyroscope feedback, the other reads five ultrasonic sensors. A four-state machine (idle, armed, following, searching) governs behaviour, with proportional speed and steering control, depth-based obstacle avoidance, a stationary hold for close-range browsing, and an independent ultrasonic guard that enforces hard stopping distances. A UHF RFID reader identifies tagged products as they enter the cart for hands-free checkout. Indoor tests show reliable following, responsive obstacle stops, and robust re-identification after brief occlusions, without cloud or GPU processing.</p>
+
+    <!-- 1 -->
+    <section id="intro">
+      <h2><span class="n">1</span>Introduction</h2>
+      <p>Moving goods through crowded indoor spaces such as supermarkets, warehouses, hospitals and airports is physically demanding. A normal cart must be pushed and steered the whole time, which is a real barrier for elderly, injured, pregnant or disabled shoppers. A cart that follows its user frees both hands and removes that effort.</p>
+      <p>Our first prototype, Cart-X, showed the idea on a small mecanum-wheel base. The user drew a box around themselves on the camera feed, a CSRT tracker followed that box, and the image was split into left, center and right zones to choose the motion. It worked in a controlled room, but testing exposed limits that tuning could not fix:</p>
+      <ol class="plain">
+        <li><strong>No metric range.</strong> Box size depends on posture, clothing and partial visibility, so the following distance drifted.</li>
+        <li><strong>Manual, fragile identity.</strong> The target was chosen by hand, and the tracker drifted onto the background or another person after occlusion.</li>
+        <li><strong>No direction from Bluetooth signal strength.</strong> One radio gives rough distance at best, and the signal swings with body shadowing and reflections.</li>
+        <li><strong>No obstacle protection</strong> and no closed-loop wheel feedback.</li>
+        <li><strong>No checkout</strong>, so the cart saved effort in the aisle but not at the counter.</li>
+      </ol>
+      <p>The redesigned Smart Cart addresses each one. Its main contributions are:</p>
+      <ol class="plain">
+        <li>A low-cost distributed architecture that separates perception and supervision (Raspberry Pi 5) from real-time motor control, proximity sensing and billing (three ESP32 boards).</li>
+        <li>A real-time perception pipeline on a CPU-only Pi 5: YOLOv8n in NCNN format at 15–17 fps, ByteTrack identities, torso and closest-point depth ranging, and colour-plus-geometry re-identification.</li>
+        <li>A four-state supervisor with a sticky target lock, proportional control, stationary hold, depth-based VFH obstacle avoidance, and an independent ultrasonic guard.</li>
+        <li>A working UHF RFID billing subsystem that reads products as they enter the cart, looks them up in Firebase, and shows the running bill on the user's phone.</li>
+        <li>Separate web panels: a token-protected public panel for the shopper and a private engineering dashboard.</li>
+        <li>An experimental evaluation and a direct comparison with the first prototype.</li>
+      </ol>
+    </section>
+
+    <!-- 2 -->
+    <section id="related">
+      <h2><span class="n">2</span>Related work</h2>
+      <p><strong>Person-following robots</strong> on the ground most often pair a camera with a range sensor. Early low-cost trolleys used ultrasonic and infrared sensors, which keep distance in open space but cannot single out one user among others. Laser-based systems are accurate but costly.</p>
+      <p><strong>Radio-based following</strong> locates a tag the user carries. Bluetooth Low Energy is cheap, but its signal strength is heavily affected by the body, orientation and reflections, and reliable positioning needs dense beacons. Direction needs several separated antennas or angle-of-arrival hardware, which matches what we found ourselves.</p>
+      <p><strong>Visual tracking</strong> moved from face detection and colour segmentation, which break under changing light, to correlation-filter trackers such as CSRT, which are fast but drift under occlusion. Detectors such as SSD and YOLO find people directly in every frame and already run on Raspberry Pi followers.</p>
+      <p><strong>Tracking and re-identification.</strong> ByteTrack links detections across frames, including low-confidence ones, which reduces broken tracks under occlusion. Because a following robot must keep the same identity for minutes, many systems add re-identification from clothing colour, height, gait, faces or learned features.</p>
+      <p><strong>RGB-D sensing</strong> gives dense depth at low cost and removes the scale ambiguity that makes box-size ranging unreliable, although error grows with distance and there is a minimum range.</p>
+      <p><strong>Robotic carts and RFID billing.</strong> RFID is mature in retail, and several carts bill automatically, but most use HF or low-cost readers that read one tag at a time at short range. Passive UHF tags (EPC Gen2) can be read in bulk at a distance, which suits items dropped into a basket. Camera-based trolleys rarely combine free following with billing.</p>
+
+      <div class="tbl">
+        <table>
+          <caption>Table 1. Comparison of representative person-following and cart systems</caption>
+          <thead><tr><th>System</th><th>Sensing</th><th>Detection / ID</th><th>Compute</th><th>Obstacles</th><th>Billing</th></tr></thead>
+          <tbody>
+            <tr><td>Koide &amp; Miura</td><td>Laser + camera</td><td>Colour, height, gait</td><td>PC</td><td>Laser</td><td>–</td></tr>
+            <tr><td>Algabri &amp; Choi</td><td>RGB-D + LiDAR</td><td>SSD + HSV colour</td><td>Laptop</td><td>LiDAR</td><td>–</td></tr>
+            <tr><td>Koushek et al.</td><td>Camera + ultrasonic</td><td>Haar face</td><td>Pi 4 + Arduino</td><td>Ultrasonic</td><td>–</td></tr>
+            <tr><td>Ng et al.</td><td>Ultrasonic + RFID</td><td>– (guided)</td><td>Server board</td><td>Ultrasonic</td><td>Database</td></tr>
+            <tr><td>Garg et al.</td><td>RFID only</td><td>–</td><td>Arduino</td><td>–</td><td>RFID</td></tr>
+            <tr><td>Cart-X (our previous)</td><td>Mono camera + BLE</td><td>Manual box + CSRT</td><td>Pi 5</td><td>–</td><td>–</td></tr>
+            <tr><td><strong>Smart Cart (this work)</strong></td><td>RGB-D + 5 ultrasonic</td><td>YOLOv8n + ByteTrack</td><td>Pi 5 + 3 ESP32</td><td>VFH + ultrasonic</td><td>UHF RFID</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 3 -->
+    <section id="evolution">
+      <h2><span class="n">3</span>Design evolution</h2>
+      <p>Smart Cart went through three iterations. Why each one was abandoned explains the current design.</p>
+
+      <h3>Iteration 1: BLE signal-strength triangulation</h3>
+      <p>Three ESP32 boards on the cart measured the signal strength of a Bluetooth beacon carried by the user, aiming to work out the user's direction. Body shadowing and reflections dominated: a stationary beacon's reading swung between −60 and −100 dBm, and the direction estimate was unusable. We also found that third-party iOS apps cannot advertise as a BLE peripheral, so a phone cannot act as the beacon.</p>
+
+      <h3>Iteration 2: Cart-X (CSRT tracker and dual BLE)</h3>
+      <p>Bluetooth was kept only for control and telemetry, and following moved to vision. A Pi Camera Module 3 (75° field of view) fed an OpenCV CSRT tracker started from a box the user drew. Three image zones mapped to left, forward and right, and box area decided whether to move or stop. Four mecanum wheels were driven by two TB6612FNG drivers straight from the Pi's GPIO. The tracker ran at about 15–17 fps, but the box drifted when the user turned or was partly hidden, and box area had no metric meaning.</p>
+
+      <h3>Iteration 3: Smart Cart (this work)</h3>
+      <p>The Raspberry Pi 5 stayed; every other subsystem changed, and billing was added.</p>
+      <div class="tbl">
+        <table>
+          <caption>Table 2. Cart-X versus Smart Cart: design changes and reasons</caption>
+          <thead><tr><th>Subsystem</th><th>Cart-X</th><th>Smart Cart</th><th>Reason</th></tr></thead>
+          <tbody>
+            <tr><td>Vision sensor</td><td>Pi Camera Module 3, 75°</td><td>Orbbec Astra Pro RGB-D, about 58°</td><td>Metric depth for distance control</td></tr>
+            <tr><td>Target selection</td><td>User draws a box</td><td>Scan QR, tap Start / Confirm</td><td>One tap, no drawing</td></tr>
+            <tr><td>Tracker</td><td>OpenCV CSRT</td><td>YOLOv8n (NCNN) + ByteTrack</td><td>Detects "person" every frame at 15–17 fps</td></tr>
+            <tr><td>Identity recovery</td><td>None</td><td>Colour + height + bearing re-ID</td><td>Re-acquires after occlusion</td></tr>
+            <tr><td>Distance estimate</td><td>Normalised box area</td><td>Depth (torso + closest point)</td><td>Metric; protects the user's feet</td></tr>
+            <tr><td>Steering</td><td>3 image zones</td><td>Smoothed bearing + P-control</td><td>Smoother, fewer oscillations</td></tr>
+            <tr><td>Drive base</td><td>4 mecanum wheels</td><td>2-wheel differential</td><td>Simpler control, encoder feedback</td></tr>
+            <tr><td>Motor driver</td><td>2× TB6612FNG</td><td>Cytron MDD10A</td><td>More current headroom</td></tr>
+            <tr><td>Motor control</td><td>Pi GPIO PWM (open loop)</td><td>Dedicated ESP32 (encoders, gyro)</td><td>Real-time loop off the Pi</td></tr>
+            <tr><td>Obstacles</td><td>None</td><td>Depth VFH + 5× HC-SR04 guard</td><td>Steer around, then stop</td></tr>
+            <tr><td>Billing</td><td>Future work</td><td>YRM100 UHF RFID + ESP32 + Firebase</td><td>Automatic, hands-free checkout</td></tr>
+            <tr><td>User interface</td><td>Dual BLE + Flutter app</td><td>User + admin web panels</td><td>Any phone, no pairing</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Design requirements</h3>
+      <div class="tbl">
+        <table>
+          <caption>Table 3. Requirements fixed before the redesign</caption>
+          <thead><tr><th>ID</th><th>Requirement</th><th>Verified by</th></tr></thead>
+          <tbody>
+            <tr><td>R1</td><td>Let the user connect by QR and select themselves</td><td>State tests</td></tr>
+            <tr><td>R2</td><td>Keep the configured metric standoff (0.4 m)</td><td>Following results</td></tr>
+            <tr><td>R3</td><td>Measure the user's distance in meters</td><td>Range estimation</td></tr>
+            <tr><td>R4</td><td>Keep the same user through brief occlusions</td><td>Re-ID results</td></tr>
+            <tr><td>R5</td><td>Never switch silently to another person</td><td>Re-ID results</td></tr>
+            <tr><td>R6</td><td>Avoid or stop for obstacles in the path</td><td>Obstacle tests</td></tr>
+            <tr><td>R7</td><td>Stay still while the user browses a shelf</td><td>Following results</td></tr>
+            <tr><td>R8</td><td>Detect at 15 fps or more on the Pi without a GPU</td><td>Throughput test</td></tr>
+            <tr><td>R9</td><td>Bill every tagged item placed in the cart</td><td>Billing subsystem</td></tr>
+            <tr><td>R10</td><td>Show state and bill in any browser</td><td>Software tests</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 4 -->
+    <section id="hardware">
+      <h2><span class="n">4</span>Hardware design</h2>
+      <p>The Raspberry Pi 5 handles perception and supervision. The main ESP32 closes the motor loop using wheel encoders and an MPU6050, and forwards sensor data to the Pi. A sensor-hub ESP32 triggers the ultrasonic sensors and passes their readings to the main board over I²C. A third ESP32, used only for billing, reads the UHF RFID module over UART and reaches Firebase over its built-in Wi-Fi.</p>
+
+      <figure class="fig">
+        <svg viewBox="0 0 640 420" role="img" aria-labelledby="archT" class="svgtext">
+          <title id="archT">Hardware architecture: camera to Pi, Pi to main ESP32, hub ESP32 over I2C, motor driver and motors; billing ESP32 with RFID to Firebase; web panel over HTTP</title>
+          <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker></defs>
+          <g font-size="13" fill="var(--ink)">
+            <rect x="20" y="20" width="160" height="50" rx="8" fill="var(--surface)" stroke="var(--line)"/><text x="100" y="41" text-anchor="middle">YRM100 UHF RFID</text><text x="100" y="58" text-anchor="middle" fill="var(--muted)" font-size="12">built-in antenna</text>
+            <rect x="240" y="20" width="160" height="50" rx="8" fill="var(--surface)" stroke="var(--line)"/><text x="320" y="41" text-anchor="middle">ESP32 billing</text><text x="320" y="58" text-anchor="middle" fill="var(--muted)" font-size="12">Wi-Fi</text>
+            <rect x="460" y="20" width="160" height="50" rx="8" fill="var(--surface)" stroke="var(--line)"/><text x="540" y="41" text-anchor="middle">Firebase</text><text x="540" y="58" text-anchor="middle" fill="var(--muted)" font-size="12">products, bill</text>
+
+            <rect x="240" y="100" width="160" height="50" rx="8" fill="var(--surface)" stroke="var(--line)"/><text x="320" y="121" text-anchor="middle">Orbbec Astra Pro</text><text x="320" y="138" text-anchor="middle" fill="var(--muted)" font-size="12">RGB + depth</text>
+
+            <rect x="240" y="180" width="160" height="60" rx="8" fill="var(--board-soft)" stroke="var(--board)" stroke-width="1.5"/><text x="320" y="204" text-anchor="middle" font-weight="600">Raspberry Pi 5</text><text x="320" y="222" text-anchor="middle" fill="var(--muted)" font-size="12">YOLO, fusion, supervisor</text>
+            <rect x="460" y="185" width="160" height="50" rx="8" fill="var(--surface)" stroke="var(--line)"/><text x="540" y="206" text-anchor="middle">Web panels</text><text x="540" y="223" text-anchor="middle" fill="var(--muted)" font-size="12">user + admin</text>
+            <rect x="20" y="185" width="160" height="50" rx="8" fill="var(--surface)" stroke="var(--line)"/><text x="100" y="215" text-anchor="middle">5 V supplies</text>
+
+            <rect x="240" y="270" width="160" height="50" rx="8" fill="var(--surface)" stroke="var(--line)"/><text x="320" y="291" text-anchor="middle">ESP32 main</text><text x="320" y="308" text-anchor="middle" fill="var(--muted)" font-size="12">PWM, encoders, MPU6050</text>
+            <rect x="460" y="270" width="160" height="50" rx="8" fill="var(--surface)" stroke="var(--line)"/><text x="540" y="291" text-anchor="middle">ESP32 hub</text><text x="540" y="308" text-anchor="middle" fill="var(--muted)" font-size="12">5× HC-SR04</text>
+            <rect x="20" y="270" width="160" height="50" rx="8" fill="var(--surface)" stroke="var(--line)"/><text x="100" y="300" text-anchor="middle">12 V battery</text>
+
+            <rect x="240" y="350" width="160" height="50" rx="8" fill="var(--surface)" stroke="var(--line)"/><text x="320" y="371" text-anchor="middle">Cytron MDD10A</text><text x="320" y="388" text-anchor="middle" fill="var(--muted)" font-size="12">to L / R encoder motors</text>
+          </g>
+          <g stroke="var(--muted)" stroke-width="1.5" fill="none">
+            <line x1="180" y1="45" x2="238" y2="45" marker-end="url(#ar)"/>
+            <line x1="400" y1="45" x2="458" y2="45" marker-end="url(#ar)" marker-start="url(#ar)"/>
+            <line x1="320" y1="150" x2="320" y2="178" marker-end="url(#ar)"/>
+            <line x1="400" y1="210" x2="458" y2="210" marker-end="url(#ar)" marker-start="url(#ar)"/>
+            <line x1="540" y1="70" x2="540" y2="183" marker-end="url(#ar)"/>
+            <line x1="320" y1="240" x2="320" y2="268" marker-end="url(#ar)" marker-start="url(#ar)"/>
+            <line x1="460" y1="295" x2="402" y2="295" marker-end="url(#ar)"/>
+            <line x1="320" y1="320" x2="320" y2="348" marker-end="url(#ar)"/>
+            <line x1="180" y1="295" x2="238" y2="370" marker-end="url(#ar)"/>
+            <line x1="100" y1="270" x2="100" y2="237" marker-end="url(#ar)"/>
+            <line x1="180" y1="210" x2="238" y2="210" marker-end="url(#ar)"/>
+          </g>
+          <g font-size="11" fill="var(--muted)">
+            <text x="196" y="38">UART</text><text x="412" y="38">Wi-Fi</text><text x="326" y="168">USB</text>
+            <text x="412" y="203">HTTP</text><text x="326" y="258">USB serial</text><text x="418" y="288">I²C</text><text x="326" y="338">PWM, DIR</text>
+          </g>
+        </svg>
+        <figcaption>Figure 1. Hardware architecture. Vision and supervision run on the Pi 5, actuation and proximity sensing on two ESP32 boards, and billing on a third ESP32 with the RFID reader and Firebase.</figcaption>
+      </figure>
+
+      <h3>Raspberry Pi 5</h3>
+      <p>The quad-core Arm Cortex-A76 at 2.4 GHz runs the detector, tracker, range estimation, supervisor, obstacle avoidance and both web servers in Python. There is no accelerator; all inference runs on the CPU. It connects to the camera over USB and to the main ESP32 over a second USB port.</p>
+
+      <h3>Orbbec Astra Pro RGB-D camera</h3>
+      <p>The camera pairs an RGB sensor (read through V4L2) with a structured-light depth sensor (read through OpenNI2). It is mounted at the back of the cart, 1.40 m above the floor. Its field of view is about 58° and depth starts at about 0.6 m. The narrower view than the Pi Camera is offset by steering continuously toward the user, and the minimum range sets the practical lower limit on following distance.</p>
+
+      <h3>ESP32 main board</h3>
+      <p>An ESP32 DevKit V1 generates PWM and direction signals for the motor driver, counts encoder edges with interrupts, reads the MPU6050 over I²C, polls the sensor hub, and exchanges framed messages with the Pi. Keeping this loop on a microcontroller isolates motor timing from Linux scheduling jitter.</p>
+
+      <h3>ESP32 sensor hub</h3>
+      <p>A second ESP32 acts as an I²C slave at address 0x20. It triggers the five HC-SR04 sensors, converts echo times to distances, and returns the latest set on request, so blocking echo measurements never delay the motor loop.</p>
+
+      <h3>Motor driver and motors</h3>
+      <p>The Cytron MDD10A is a dual-channel driver rated at 10 A continuous per channel and 5–30 V. It replaces the two TB6612FNG boards, whose low current rating left little margin for a loaded cart. Two 12 V geared DC motors (1:30 gearbox, 330 counts per output revolution) drive wheels of radius 0.05 m, 0.40 m apart.</p>
+
+      <h3>MPU6050 inertial sensor</h3>
+      <p>The 3-axis gyroscope and accelerometer (I²C address 0x68) provides a yaw rate that is integrated and reported in telemetry, giving a heading reference independent of wheel slip.</p>
+
+      <h3>Ultrasonic sensors</h3>
+      <p>Five HC-SR04 rangers (2–400 cm, about 15° beam) sit at the front left, front right, left, right and middle back. The two front sensors cover the path ahead with overlapping beams.</p>
+
+      <h3>UHF RFID billing module</h3>
+      <p>Billing uses a YRM100 UHF RFID reader with a built-in antenna. It reads passive EPC Gen2 tags and reports each tag's EPC and signal strength over serial. It is mounted high on the side of the basket, facing inward, so its field covers the basket while pointing away from the aisle. A dedicated ESP32 keeps RFID and Wi-Fi traffic off the motion controllers, so a slow network can never delay motor commands.</p>
+
+      <h3>Power distribution</h3>
+      <p>The motor rail is separate from the logic rails, and all grounds are common. The HC-SR04 sensors are sensitive to the 5 V rail: when it sagged, every sensor reported its maximum 400 cm, which silently disables obstacle detection. A dedicated regulator for the sensor hub is recommended. The RFID module is also on a regulated rail because it draws the most current while transmitting.</p>
+      <div class="tbl">
+        <table>
+          <caption>Table 4. Power distribution</caption>
+          <thead><tr><th>Source</th><th>Component</th><th>Connection</th></tr></thead>
+          <tbody>
+            <tr><td>12 V battery</td><td>MDD10A</td><td>Motor supply</td></tr>
+            <tr><td>5 V</td><td>Raspberry Pi 5</td><td>12 V to 5 V, 5 A buck (USB-C)</td></tr>
+            <tr><td>5 V</td><td>Astra Pro</td><td>Pi USB port</td></tr>
+            <tr><td>5 V</td><td>ESP32 boards, HC-SR04</td><td>12 V to 5 V, 3 A buck</td></tr>
+            <tr><td>5 V</td><td>YRM100 RFID</td><td>12 V to 5 V, 3 A buck</td></tr>
+            <tr><td>3.3 V</td><td>MPU6050</td><td>ESP32 regulator</td></tr>
+            <tr><td>0 V</td><td>All modules</td><td>Common ground</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Pin assignments</h3>
+      <p>The Pi no longer uses any GPIO for actuation, which removes timing jitter and electrical noise. Pins avoid the ESP32 flash pins (GPIO 6–11), the USB serial pins (1, 3) and the boot strapping pins (0, 2, 5, 12, 15). GPIO 34–39 are input-only without internal pull-ups, so the encoder lines have external pull-ups, and each 5 V echo line passes through a divider to 3.3 V.</p>
+      <div class="tbl">
+        <table>
+          <caption>Table 5. ESP32 main board</caption>
+          <thead><tr><th>Device</th><th>Pin</th><th>GPIO</th><th>Function</th></tr></thead>
+          <tbody>
+            <tr><td>Left motor</td><td>PWM1 / DIR1</td><td>25 / 26</td><td>Speed / direction</td></tr>
+            <tr><td>Right motor</td><td>PWM2 / DIR2</td><td>13 / 27</td><td>Speed / direction</td></tr>
+            <tr><td>Left encoder</td><td>A / B</td><td>34 / 35</td><td>Interrupt</td></tr>
+            <tr><td>Right encoder</td><td>A / B</td><td>32 / 33</td><td>Interrupt</td></tr>
+            <tr><td>I²C bus</td><td>SDA / SCL</td><td>21 / 22</td><td>MPU6050, hub</td></tr>
+            <tr><td>Raspberry Pi</td><td>USB</td><td>UART0</td><td>Serial link</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="tbl">
+        <table>
+          <caption>Table 6. ESP32 sensor hub (I²C slave 0x20, SDA 21, SCL 22)</caption>
+          <thead><tr><th>Sensor</th><th>TRIG</th><th>ECHO (via divider)</th></tr></thead>
+          <tbody>
+            <tr><td>Front left</td><td>23</td><td>34</td></tr>
+            <tr><td>Front right</td><td>19</td><td>35</td></tr>
+            <tr><td>Left</td><td>18</td><td>32</td></tr>
+            <tr><td>Right</td><td>17</td><td>33</td></tr>
+            <tr><td>Back</td><td>16</td><td>39</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="tbl">
+        <table>
+          <caption>Table 7. ESP32 billing board</caption>
+          <thead><tr><th>Device</th><th>Pin</th><th>GPIO</th><th>Function</th></tr></thead>
+          <tbody>
+            <tr><td>YRM100</td><td>TXD</td><td>16 (RX2)</td><td>Tag data in</td></tr>
+            <tr><td>YRM100</td><td>RXD</td><td>17 (TX2)</td><td>Commands out</td></tr>
+            <tr><td>Firebase</td><td>–</td><td>Wi-Fi</td><td>Cloud link</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 5 -->
+    <section id="kinematics">
+      <h2><span class="n">5</span>Kinematics and motion model</h2>
+      <p>The drive base is a differential drive. With wheel radius <i>r</i>, track width <i>b</i> and wheel speeds ω<sub>L</sub>, ω<sub>R</sub>, the forward speed <i>v</i> and yaw rate ω are:</p>
+      <div class="eq"><i>v</i> = (<i>r</i>/2)(ω<sub>R</sub> + ω<sub>L</sub>), &nbsp;&nbsp; ω = (<i>r</i>/<i>b</i>)(ω<sub>R</sub> − ω<sub>L</sub>)</div>
+      <p>The supervisor commands (<i>v</i>, ω), and the ESP32 inverts this to get wheel targets:</p>
+      <div class="eq">ω<sub>L</sub> = (<i>v</i> − ω<i>b</i>/2) / <i>r</i>, &nbsp;&nbsp; ω<sub>R</sub> = (<i>v</i> + ω<i>b</i>/2) / <i>r</i></div>
+      <p>Compared with the four-wheel mecanum model, this has two inputs instead of four, no sideways velocity and no roller slip, which makes encoder feedback meaningful and control much easier to tune. The cost is that the cart cannot strafe; it turns toward the user, which the bearing controller does naturally.</p>
+      <p>Each wheel's quadrature encoder is read by the ESP32, and the gyro rate is integrated to yaw. With <i>N</i> counts per revolution, wheel travel is Δ<i>s</i> = 2π<i>r</i>Δ<i>n</i>/<i>N</i>. These are used for motor control and monitoring; the cart controls only its distance and bearing to the user, not its position in the store.</p>
+    </section>
+
+    <!-- 6 -->
+    <section id="software">
+      <h2><span class="n">6</span>Software design</h2>
+      <h3>Architecture</h3>
+      <p>All Pi software is one Python 3.12 program, <code>web_follow_cart.py</code>, with depth-camera geometry in <code>blob_tracker.py</code>. It runs four concurrent parts: a detection thread that runs YOLO on the newest frame, the control loop (depth, state machine, drive commands), a user web app, and an admin web app, both in Flask. Detection has its own thread so a slow inference never blocks the control loop or the web servers. Billing firmware runs independently on its own ESP32.</p>
+
+      <h3>Person detection and tracking</h3>
+      <p>Detection uses YOLOv8 nano, pretrained on COCO and restricted to the person class. Exporting it to NCNN at 320 px input roughly doubled throughput on the Pi 5 CPU, from about 7–8 fps to 15–17 fps. ByteTrack links detections across frames and gives each person a persistent ID. The capture buffer holds a single frame, so when the detector falls behind, it always gets the newest frame instead of a stale backlog.</p>
+
+      <h3>Bearing estimation</h3>
+      <p>For a person box with horizontal center <i>u</i> in an image of width <i>W</i>, the raw bearing is:</p>
+      <div class="eq">θ = (<i>u</i>/<i>W</i> − ½) · φ<sub>h</sub> <small>φ<sub>h</sub> ≈ 58°</small></div>
+      <p>It is smoothed with an exponential moving average, which roughly halved frame-to-frame noise:</p>
+      <div class="eq">θ̃<sub>t</sub> = (1 − α) θ̃<sub>t−1</sub> + α θ<sub>t</sub> <small>0 &lt; α &lt; 1</small></div>
+
+      <h3>Range estimation</h3>
+      <p>Depth is mapped to the RGB box using the camera height of 1.40 m. Two distances are computed for the locked person: a torso range <i>d</i><sub>T</sub>, the median depth in a narrow torso band, used for speed control; and a closest-point range <i>d</i><sub>C</sub>, the nearest depth anywhere in the box. The stop decision uses <i>d</i><sub>stop</sub> = min(<i>d</i><sub>T</sub>, <i>d</i><sub>C</sub>), so the cart never closes on the user's feet while the torso still looks far enough away.</p>
+
+      <h3>Target lock and re-identification</h3>
+      <p>Once confirmed, a person's track ID is locked, and the lock is sticky: it is released only by Stop, an armed timeout, or when searching gives up. A depth continuity gate rejects a detection whose range jumps more than 0.30 m from the last value. It was widened from 0.15 m because normal walking exceeded the narrower gate and falsely triggered "lost".</p>
+      <p>If the locked person is not seen, the cart coasts for 0.8 s before declaring them lost. After that, candidates are re-identified by clothing colour and geometry. Each candidate's HSV colour histogram is compared with the stored target using the Bhattacharyya distance <i>D</i><sub>B</sub>. A candidate is accepted only if all three hold:</p>
+      <div class="eq"><i>D</i><sub>B</sub> ≤ 0.35, &nbsp; 0.62 ≤ <i>h</i><sub>j</sub>/<i>h</i>* ≤ 1.60, &nbsp; |θ<sub>j</sub> − θ̂*| ≤ θ<sub>c</sub>(<i>t</i>)</div>
+      <p>where <i>h</i> is box height, θ̂* is the target's predicted bearing, and the acceptance cone θ<sub>c</sub> grows while the target is lost, capped at 15°. These values were tightened after the cart followed the wrong person in a crowd, when the colour threshold was 0.58 and the cone could grow to 30°.</p>
+
+      <h3>Supervisory state machine</h3>
+      <figure class="fig">
+        <svg viewBox="0 0 640 260" role="img" aria-labelledby="fsmT" class="svgtext">
+          <title id="fsmT">State machine: Idle to Armed on Start or Confirm; Armed to Following after 15 stable frames, back to Idle on timeout; Following to Searching when lost more than 0.8 s; Searching back to Following on re-ID, or to Idle after 30 s; Stop from any state returns to Idle</title>
+          <defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker></defs>
+          <g font-size="14" fill="var(--ink)" text-anchor="middle">
+            <rect x="20" y="80" width="110" height="46" rx="23" fill="var(--surface)" stroke="var(--ink)"/><text x="75" y="108">Idle</text>
+            <rect x="220" y="80" width="110" height="46" rx="23" fill="var(--surface)" stroke="var(--ink)"/><text x="275" y="108">Armed</text>
+            <rect x="420" y="80" width="130" height="46" rx="23" fill="var(--board-soft)" stroke="var(--board)" stroke-width="1.5"/><text x="485" y="108" font-weight="600">Following</text>
+            <rect x="420" y="190" width="130" height="46" rx="23" fill="var(--surface)" stroke="var(--ink)"/><text x="485" y="218">Searching</text>
+          </g>
+          <g stroke="var(--muted)" stroke-width="1.5" fill="none">
+            <path d="M130 96 L218 96" marker-end="url(#ar2)"/>
+            <path d="M220 112 L132 112" marker-end="url(#ar2)"/>
+            <path d="M330 103 L418 103" marker-end="url(#ar2)"/>
+            <path d="M470 126 L470 188" marker-end="url(#ar2)"/>
+            <path d="M500 188 L500 128" marker-end="url(#ar2)"/>
+            <path d="M420 213 C 200 213, 90 200, 75 128" marker-end="url(#ar2)"/>
+          </g>
+          <g font-size="12" fill="var(--muted)" text-anchor="middle">
+            <text x="174" y="88">Start / Confirm</text><text x="176" y="130">timeout</text>
+            <text x="374" y="95">15 stable frames</text>
+            <text x="438" y="162" text-anchor="end">lost &gt; 0.8 s</text><text x="508" y="162" text-anchor="start">re-ID</text>
+            <text x="230" y="228">no match after 30 s</text>
+            <text x="75" y="40" fill="var(--warn)">Stop from any state returns to Idle</text>
+          </g>
+        </svg>
+        <figcaption>Figure 2. The four-state supervisor.</figcaption>
+      </figure>
+      <ul class="plain">
+        <li><strong>Idle:</strong> the camera runs and nobody is locked. The best-centered person is shown on the panels as a candidate.</li>
+        <li><strong>Armed:</strong> entered when the user, having opened the panel from the cart's QR code, presses Start or "This is me". The lock must stay stable for about 15 frames before it is committed; if it times out, the lock is released so a failed confirmation never leaves the cart stuck.</li>
+        <li><strong>Following:</strong> tracking the locked person.</li>
+        <li><strong>Searching:</strong> the cart rotates toward the last predicted bearing and tries to re-acquire the user for up to 30 s before returning to Idle.</li>
+      </ul>
+
+      <h3>Main control loop</h3>
+      <p>Each cycle reads the latest target and telemetry, checks for Stop, runs the logic for the current state, applies the ultrasonic guard, and sends the command to the ESP32. The guard always has the last word on the command. The whole cycle runs inside an exception handler that stops the motors on any error.</p>
+
+      <h3>Motion control</h3>
+      <p><strong>Linear speed.</strong> The cart only moves forward while following. Speed is proportional to the distance error from the standoff <i>d</i><sub>s</sub>, capped at a maximum:</p>
+      <div class="eq"><i>v</i> = clip( <i>k</i><sub>v</sub>(<i>d</i><sub>T</sub> − <i>d</i><sub>s</sub>), 0, <i>v</i><sub>max</sub> )</div>
+      <p>The cart stops when <i>d</i><sub>stop</sub> ≤ <i>d</i><sub>s</sub>. In the tested setup, <i>d</i><sub>s</sub> = 0.4 m, follow speed is 350 and <i>v</i><sub>max</sub> is 700 command units, about 0.45 m/s and 0.9 m/s.</p>
+      <p><strong>Heading.</strong> Yaw rate is proportional to the smoothed bearing, ω = −<i>k</i><sub>θ</sub>θ̃, with <i>k</i><sub>θ</sub> = 8 units per degree, a maximum of 400 units, and a 1.5° dead zone. The dead zone was tightened from 3.0° so small real drift is corrected instead of the cart settling off-center.</p>
+      <p><strong>Stationary hold.</strong> When the user's range changes by less than 8 cm for longer than 0.6 s, the cart holds still and only re-centers if the bearing error exceeds 10°. This keeps it from creeping back and forth on depth noise while the shopper browses a shelf.</p>
+
+      <h3>Depth-based obstacle avoidance</h3>
+      <p>While following, a vector field histogram (VFH) runs on the depth image. Depth pixels in front of the cart, excluding the locked person's box, are binned by bearing into 5° sectors. A sector is blocked when more than 30% of its pixels hold an obstacle within 2.0 m, and steering moves from the user's bearing to the nearest free sector wide enough for the cart. This lets the cart steer around shelves, boxes and other shoppers, which the ultrasonic guard alone could only stop for.</p>
+
+      <h3>Ultrasonic guard layer</h3>
+      <p>Independently of vision, the guard can zero the forward command. With the nearest front reading <i>r</i><sub>f</sub>, stop distance <i>r</i><sub>s</sub> and taper width <i>r</i><sub>τ</sub>:</p>
+      <div class="eq"><i>v</i>′ = <i>v</i> · clip( (<i>r</i><sub>f</sub> − <i>r</i><sub>s</sub>) / <i>r</i><sub>τ</sub>, 0, 1 )</div>
+      <p>The cart slows linearly over the taper zone and stops at <i>r</i><sub>s</sub>; the rear sensor protects reverse motion the same way. In the tested setup <i>r</i><sub>s</sub> = 30 cm and <i>r</i><sub>τ</sub> = 20 cm. Readings older than 400 ms are treated as stale and stop the cart.</p>
+
+      <h3>Pi to ESP32 serial protocol</h3>
+      <p>The Pi and main ESP32 exchange newline-terminated ASCII frames over USB serial at 115,200 baud. ASCII is easy to read in a serial monitor, which helped a lot during hardware debugging. A sequence number lets the firmware discard stale or duplicate commands, and the ESP32 stops both motors if no valid command arrives within 500 ms.</p>
+      <div class="tbl">
+        <table>
+          <caption>Table 8. Serial frames</caption>
+          <thead><tr><th>Direction</th><th>Frame</th><th>Contents</th></tr></thead>
+          <tbody>
+            <tr><td>Pi to ESP32</td><td><code>C,lin,ang,seq</code></td><td>Linear and angular command, sequence number</td></tr>
+            <tr><td>ESP32 to Pi</td><td><code>T,frontL,frontR,left,right,back,encL,encR,yaw</code></td><td>Five ranges, encoder counts, yaw (plus battery and state)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Fault tolerance</h3>
+      <ul class="plain">
+        <li><strong>Loop errors:</strong> each iteration has its own exception handler. On any error the motors stop, the error is logged, and the loop retries, instead of the program exiting and leaving the cart offline.</li>
+        <li><strong>Corrupted serial lines:</strong> a torn telemetry line is discarded. Previously old values were kept but marked fresh, which hid real sensor dropouts.</li>
+        <li><strong>Implausible telemetry:</strong> battery voltage is accepted only between 0 and 30 V.</li>
+        <li><strong>Single device owner:</strong> only one process can hold the camera and serial port, so a stale instance must be stopped before a new launch.</li>
+      </ul>
+
+      <h3>Motion firmware</h3>
+      <p>The main ESP32 firmware (Arduino-ESP32 core 3.x) runs a fixed-rate loop that parses commands, updates encoder counts from interrupts, reads the gyro, polls the hub over I²C, drives the MDD10A, and sends telemetry at 50 Hz.</p>
+
+      <h3>UHF RFID billing</h3>
+      <p>Billing runs entirely on the billing ESP32 and Firebase, independent of following.</p>
+      <ol class="plain">
+        <li><strong>Read tags:</strong> the ESP32 sends inventory commands to the YRM100 over UART and parses each tag's EPC and signal strength.</li>
+        <li><strong>Remove duplicates:</strong> UHF readers report the same tag many times per second, so the ESP32 keeps a set of EPCs already in the cart and bills each item only the first time.</li>
+        <li><strong>Look up the product:</strong> the EPC is the key into a Firebase product collection holding name and price. Unknown tags are flagged.</li>
+        <li><strong>Update the bill:</strong> the item is written to the cart's bill and the running total updates. The bill is marked paid when the shopper confirms checkout on the user panel.</li>
+      </ol>
+      <div class="tbl">
+        <table>
+          <caption>Table 9. Firebase data structure</caption>
+          <thead><tr><th>Path</th><th>Fields</th></tr></thead>
+          <tbody>
+            <tr><td><code>products/{EPC}</code></td><td>name, price</td></tr>
+            <tr><td><code>carts/{id}/items/{EPC}</code></td><td>name, price, time added</td></tr>
+            <tr><td><code>carts/{id}/total</code></td><td>running bill total</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>User and admin web panels</h3>
+      <p>The Pi serves two independent Flask apps on separate ports, matching two levels of trust.</p>
+      <div class="tbl">
+        <table>
+          <caption>Table 10. Web panels</caption>
+          <thead><tr><th></th><th>User panel</th><th>Admin panel</th></tr></thead>
+          <tbody>
+            <tr><td>Port</td><td>8080</td><td>8081</td></tr>
+            <tr><td>Audience</td><td>Shopper's phone</td><td>Team / operator</td></tr>
+            <tr><td>Access</td><td>Scan QR on cart (public HTTPS via Tailscale Funnel)</td><td>Tailscale / LAN only</td></tr>
+            <tr><td>Auth</td><td>Token on /start, /stop, /confirm</td><td>Network level</td></tr>
+            <tr><td>Shows</td><td>Status, distance, direction, bill, Start / This is me / Stop</td><td>Camera, snapshots, charts, CSV, diagnostics</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>User panel.</strong> The QR code on the cart encodes the panel's public HTTPS address and the cart's access token, so the shopper opens it with their phone camera: no app, no pairing, no address to type. It shows a plain-language status ("Following you", "Lost sight of you"), the live distance and direction, the running bill, and a fixed action bar. The routes that move the cart need the secret token, so a stranger who guesses the address cannot control it.</p>
+      <p><strong>Admin panel.</strong> A private dashboard with the live annotated camera view, snapshots, a live five-panel session chart (distance, bearing, drive commands, YOLO frame rate and all five ultrasonic readings), CSV export, and a diagnostics grid. The <code>/state</code> and <code>/candidate</code> endpoints expose the same data as JSON.</p>
+      <p><strong>Remote access.</strong> The Pi is on a Tailscale private network, so the admin panel is reachable from team devices without opening router ports. Only the user panel is published through Tailscale Funnel, verified from a separate non-Tailscale network.</p>
+      <p><strong>Streaming.</strong> The camera view is served from the same origin as the page, so it works over HTTPS without mixed-content blocking. Safari handles MJPEG streams unreliably, so Safari clients poll a still JPEG every 150 ms instead. Web-server request logging was disabled after it stalled every request when the SSH terminal couldn't keep up.</p>
+    </section>
+
+    <!-- 7 -->
+    <section id="results">
+      <h2><span class="n">7</span>Experiments and results</h2>
+      <h3>Setup</h3>
+      <p>Tests were run mostly at Assumption University (VMES building, room 0907, the VMES lobby and a dormitory) with group members and students. All runs were logged through the admin panel's session log and CSV export, and live telemetry was watched during walk-around tests, so problems were diagnosed from measured data rather than by eye.</p>
+      <div class="tbl">
+        <table>
+          <caption>Table 11. Runtime parameters (tested configuration)</caption>
+          <thead><tr><th>Parameter</th><th>Flag</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>Detector</td><td><code>--model</code></td><td>YOLOv8n NCNN</td></tr>
+            <tr><td>Camera height</td><td><code>--cam-height</code></td><td>1.40 m</td></tr>
+            <tr><td>Standoff distance</td><td><code>--standoff-m</code></td><td>0.4 m</td></tr>
+            <tr><td>Max tracking range</td><td><code>--far</code></td><td>6.0 m</td></tr>
+            <tr><td>Follow speed</td><td><code>--follow-speed</code></td><td>350</td></tr>
+            <tr><td>Max linear command</td><td><code>--max-lin</code></td><td>700</td></tr>
+            <tr><td>Stationary: still</td><td><code>--still-s</code></td><td>0.6 s</td></tr>
+            <tr><td>Stationary: move</td><td><code>--move-cm</code></td><td>8 cm</td></tr>
+            <tr><td>Re-center angle</td><td><code>--recenter-deg</code></td><td>10°</td></tr>
+            <tr><td>Obstacle stop margin</td><td><code>--stop-cm</code></td><td>8 cm</td></tr>
+            <tr><td>Obstacle look-ahead</td><td><code>--max-cm</code></td><td>60 cm</td></tr>
+            <tr><td>Depth continuity gate</td><td>–</td><td>0.30 m</td></tr>
+            <tr><td>Coast before search</td><td>–</td><td>0.8 s</td></tr>
+            <tr><td>Searching timeout</td><td>–</td><td>30 s</td></tr>
+            <tr><td>Re-ID colour threshold</td><td>–</td><td>D<sub>B</sub> ≤ 0.35</td></tr>
+            <tr><td>Re-ID height ratio</td><td>–</td><td>0.62–1.60</td></tr>
+            <tr><td>Re-ID cone (max)</td><td>–</td><td>15°</td></tr>
+            <tr><td>Steering dead zone</td><td>–</td><td>1.5°</td></tr>
+            <tr><td>User / admin port</td><td><code>--http / --admin-port</code></td><td>8080 / 8081</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="tbl">
+        <table>
+          <caption>Table 12. Test procedures</caption>
+          <thead><tr><th>Test</th><th>Procedure</th><th>Metric</th></tr></thead>
+          <tbody>
+            <tr><td>T0 Simulation</td><td>MATLAB room, person moved by keys</td><td>State accuracy</td></tr>
+            <tr><td>T1 Runtime</td><td>Run detector in PyTorch and NCNN format</td><td>fps</td></tr>
+            <tr><td>T2 Re-ID</td><td>Crossing and look-alike person, old and new thresholds</td><td>Wrong ID</td></tr>
+            <tr><td>T3 Follow</td><td>Straight, L-turn, S-curve, stop-and-browse</td><td>Standoff</td></tr>
+            <tr><td>T4 Obstacles</td><td>Box or person in path (VFH + guard)</td><td>Stop, avoid</td></tr>
+            <tr><td>T5 Software</td><td>Endpoint, auth and page tests</td><td>Pass / fail</td></tr>
+            <tr><td>T6 Comparison</td><td>Same route for both carts</td><td>Comparison table</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Simulation of the following logic</h3>
+      <p>Before hardware testing, the following logic was checked in a MATLAB simulation of a 12 × 10 m room with three internal walls. The person was moved with the arrow keys, and the simulated cart applied the same decision rules as the real one: left, forward and right sectors, plus STOP CLOSE, STOP FAR, or LOST when the person leaves the view. At every step the controller's state was compared with the true state.</p>
+      <p>Over 2,000 labelled time steps, overall accuracy was 83.8%. STOP CLOSE (96.8%) and LOST (95.0%) passed the 90% target, and the steering states reached 77.9–82.5%. STOP FAR was weakest at 49.7%, because a small range change near the threshold flips the decision. That result motivated the stationary-hold hysteresis used on the real cart.</p>
+      <figure class="fig">
+        <svg viewBox="0 0 600 260" role="img" aria-labelledby="simT" class="svgtext">
+          <title id="simT">Simulation accuracy per state: Left 81.2, Forward 77.9, Right 82.5, Stop close 96.8, Stop far 49.7, Lost 95.0 percent, with a 90 percent target line</title>
+          <g font-size="12" fill="var(--muted)">
+            <line x1="50" y1="210" x2="590" y2="210" stroke="var(--line)"/>
+            <text x="40" y="214" text-anchor="end">0</text><text x="40" y="114" text-anchor="end">50</text><text x="40" y="14" text-anchor="end">100</text>
+            <line x1="50" y1="30" x2="590" y2="30" stroke="var(--warn)" stroke-dasharray="5 4"/>
+            <text x="586" y="24" text-anchor="end" fill="var(--warn)">90% target</text>
+          </g>
+          <g fill="var(--board)">
+            <rect x="70"  y="47.6"  width="60" height="162.4"/>
+            <rect x="160" y="54.2"  width="60" height="155.8"/>
+            <rect x="250" y="45"    width="60" height="165"/>
+            <rect x="340" y="16.4"  width="60" height="193.6"/>
+            <rect x="430" y="110.6" width="60" height="99.4" fill="var(--warn)"/>
+            <rect x="520" y="20"    width="60" height="190"/>
+          </g>
+          <g font-size="12" fill="var(--ink)" text-anchor="middle">
+            <text x="100" y="42">81.2</text><text x="190" y="49">77.9</text><text x="280" y="40">82.5</text>
+            <text x="370" y="12">96.8</text><text x="460" y="105">49.7</text><text x="550" y="15">95.0</text>
+          </g>
+          <g font-size="12" fill="var(--muted)" text-anchor="middle">
+            <text x="100" y="230">Left</text><text x="190" y="230">Forward</text><text x="280" y="230">Right</text>
+            <text x="370" y="230">Stop close</text><text x="460" y="230">Stop far</text><text x="550" y="230">Lost</text>
+          </g>
+        </svg>
+        <figcaption>Figure 3. Simulation accuracy of each cart state (%), 2,000 time steps.</figcaption>
+      </figure>
+
+      <h3>Detection throughput</h3>
+      <p>Exporting YOLOv8n to NCNN at 320 px roughly doubled throughput on the Pi 5 CPU, from about 7.5 fps in PyTorch to about 16 fps, matching the old CSRT tracker's rate while detecting a person fresh in every frame. At 15–17 fps a walking shopper moves only about 8 cm between detections, which allowed the tighter steering dead zone and a stable depth continuity gate.</p>
+
+      <h3>Re-identification in crowds</h3>
+      <p>Before tuning, the cart followed the wrong person in a crowd, caused by a lenient colour threshold and a search cone that could grow to 30°. The same crossing and look-alike scenarios were repeated with the new settings.</p>
+      <div class="tbl">
+        <table>
+          <caption>Table 13. Re-identification and following results (10 trials each)</caption>
+          <thead><tr><th>Re-identification</th><th>Before</th><th>After</th></tr></thead>
+          <tbody>
+            <tr><td>Colour threshold D<sub>B</sub></td><td>0.58</td><td>0.35</td></tr>
+            <tr><td>Height-ratio check</td><td>none</td><td>0.62–1.60</td></tr>
+            <tr><td>Bearing cone (max)</td><td>30°</td><td>15°</td></tr>
+            <tr><td>Depth continuity gate</td><td>0.15 m</td><td>0.30 m</td></tr>
+            <tr><td>Coast before searching</td><td>0.5 s</td><td>0.8 s</td></tr>
+            <tr><td>Wrong-person locks</td><td>4</td><td>1</td></tr>
+            <tr><td>False "lost" while walking</td><td>9</td><td>2</td></tr>
+            <tr><td>Successful re-acquisition</td><td>60%</td><td>90%</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Following performance</h3>
+      <p>Participants walked a 10 m straight corridor, an L-turn, an S-curve between two obstacles, and a stop-and-browse segment.</p>
+      <div class="tbl">
+        <table>
+          <caption>Table 14. Following performance (current system)</caption>
+          <thead><tr><th>Metric</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>Mean standoff (target 0.4 m)</td><td>0.46 m</td></tr>
+            <tr><td>Standoff standard deviation</td><td>0.07 m</td></tr>
+            <tr><td>Max sustained following speed</td><td>0.9 m/s</td></tr>
+            <tr><td>Route completion (straight / turn / S-curve)</td><td>100 / 90 / 80%</td></tr>
+            <tr><td>Stationary-hold false moves</td><td>0.5 per minute</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Obstacle tests</h3>
+      <p>A box and a standing person were placed between the cart and the user. With VFH the cart should steer around; when no free sector exists, the ultrasonic guard must stop it.</p>
+      <div class="tbl">
+        <table>
+          <caption>Table 15. Obstacle avoidance and guard results</caption>
+          <thead><tr><th>Test</th><th>Trials</th><th>Result</th></tr></thead>
+          <tbody>
+            <tr><td>Steered around box (VFH)</td><td>10</td><td>80%</td></tr>
+            <tr><td>Steered around person (VFH)</td><td>10</td><td>70%</td></tr>
+            <tr><td>Front stop distance</td><td>10</td><td>31 ± 3 cm</td></tr>
+            <tr><td>Rear stop distance</td><td>5</td><td>29 ± 4 cm</td></tr>
+            <tr><td>Collisions</td><td>25</td><td>0</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Software verification</h3>
+      <p>Every code change was checked before use on the cart. After one bug in an embedded page script once disabled every admin button, the JavaScript of every page is now extracted and parsed with a real parser, HTML tag balance is checked, and every element ID the scripts use is cross-checked against the page.</p>
+      <div class="tbl">
+        <table>
+          <caption>Table 16. Software verification</caption>
+          <thead><tr><th>Check</th><th>Result</th></tr></thead>
+          <tbody>
+            <tr><td>Python compile after every edit</td><td>Pass</td></tr>
+            <tr><td>Page JavaScript parsed (esprima)</td><td>Pass, all pages</td></tr>
+            <tr><td>HTML tag balance, element-ID cross-check</td><td>Pass</td></tr>
+            <tr><td>All HTTP endpoints</td><td>200 OK</td></tr>
+            <tr><td>User-panel control without token</td><td>401 (rejected)</td></tr>
+            <tr><td>User-panel control with token</td><td>200 (accepted)</td></tr>
+            <tr><td>Public link from a non-Tailscale network</td><td>Reachable</td></tr>
+            <tr><td>Camera frames and charts inspected</td><td>Boxes and labels correct</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Comparison with the previous prototype</h3>
+      <div class="tbl">
+        <table>
+          <caption>Table 17. Cart-X versus Smart Cart</caption>
+          <thead><tr><th>Metric</th><th>Cart-X</th><th>Smart Cart</th></tr></thead>
+          <tbody>
+            <tr><td>Processing rate</td><td>15–17 fps</td><td>15–17 fps</td></tr>
+            <tr><td>Target selection</td><td>Draw a box</td><td>QR + tap on phone</td></tr>
+            <tr><td>Distance output</td><td>Relative area</td><td>Metric (m)</td></tr>
+            <tr><td>Identity recovery</td><td>None</td><td>Colour re-ID</td></tr>
+            <tr><td>Obstacle handling</td><td>None</td><td>VFH + ultrasonic guard</td></tr>
+            <tr><td>Automatic billing</td><td>None</td><td>UHF RFID</td></tr>
+            <tr><td>User interface</td><td>BLE app</td><td>Web (any phone)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>The new system matches the previous frame rate while doing much more per frame: each frame now contains a fresh person detection with metric range, where previously each frame only carried forward an appearance template that could drift. The previous system was simpler to set up and ran without a depth camera.</p>
+    </section>
+
+    <!-- 8 -->
+    <section id="discussion">
+      <h2><span class="n">8</span>Discussion</h2>
+      <p><strong>Depth versus appearance.</strong> Metric depth changed the problem most. Distance control became a direct comparison with a physical standoff, and the closest-point range stops the cart before it reaches the user's feet.</p>
+      <p><strong>Frame rate drives everything.</strong> Doubling the detector rate with NCNN meant the depth gate stopped firing falsely, steering could use a tighter dead zone, and the cart needed less coasting. The main remaining latency is the camera itself.</p>
+      <p><strong>Identity.</strong> The sticky lock, coasting and colour-plus-geometry re-ID handle brief occlusions. Tightening the thresholds fixed wrong-person locks, at the cost of rejecting the real user more often under strong lighting changes. Two people in similar clothes, of similar height, at the same bearing remain the hardest case.</p>
+      <p><strong>No self-localisation.</strong> The Pi does not integrate odometry, so the cart knows only the user's relative distance and bearing, not its own position.</p>
+      <p><strong>Sensor limits.</strong> The Astra's narrower view loses a user who turns sharply at close range, and its RGB device index is not stable across restarts. The HC-SR04 sensors miss soft and angled surfaces and are sensitive to supply voltage.</p>
+      <p><strong>RFID billing.</strong> A separate ESP32 isolated billing from motion. UHF reads can also pick up tags on nearby shelves or in another cart; mounting the reader facing inward, limiting output power and rejecting weak reads are the practical remedies. Metal packaging and liquids detune UHF tags, and billing depends on Wi-Fi, so a store deployment would need local caching.</p>
+      <p><strong>Privacy.</strong> All vision processing runs on the cart, frames are not uploaded, and the camera view appears only on the private admin panel. Only product EPCs and prices go to Firebase.</p>
+      <p><strong>Safety.</strong> The per-iteration exception handler, rejection of corrupted telemetry, the independent ultrasonic guard and the ESP32's 500 ms command timeout mean no single software or sensor fault leaves the cart driving blind. A physical emergency stop remains the highest-priority hardware addition.</p>
+    </section>
+
+    <!-- 9 -->
+    <section id="future">
+      <h2><span class="n">9</span>Future work</h2>
+      <ul class="plain">
+        <li><strong>Firmware-level safety:</strong> run the ultrasonic guard and a command watchdog on the ESP32, and add a hardware emergency stop.</li>
+        <li><strong>Filtered steering:</strong> an unscented Kalman filter with a constant turn-rate and velocity model to estimate the user's position, speed and heading.</li>
+        <li><strong>Occlusion bridging:</strong> a short-term KCF tracker to hold the locked person when YOLO briefly misses them.</li>
+        <li><strong>Odometry and localisation:</strong> fuse encoders and gyro into a pose estimate so the cart knows its own path.</li>
+        <li><strong>UWB ranging:</strong> DW3000 two-way ranging to a user tag for decimeter-level range and robust bearing under occlusion.</li>
+        <li><strong>Checkout and payment:</strong> connect the Firebase bill to payment and an exit check for full grab-and-go.</li>
+        <li><strong>Offline billing:</strong> cache the product list on the billing ESP32 so billing continues when Wi-Fi drops.</li>
+        <li><strong>Appearance re-identification</strong> for occlusions longer than the grace window.</li>
+      </ul>
+    </section>
+
+    <!-- 10 -->
+    <section id="conclusion">
+      <h2><span class="n">10</span>Conclusion</h2>
+      <p>Smart Cart redesigns our person-following cart by replacing Bluetooth and a manually started correlation tracker with RGB-D perception, deep-learning detection and a distributed Raspberry Pi 5 and ESP32 architecture, and adds working UHF RFID billing. YOLOv8n in NCNN format reaches 15–17 fps on a CPU-only board, and depth ranging with colour-plus-geometry re-identification keeps the right user locked. A four-state supervisor, proportional control, stationary hold, depth-based VFH and an ultrasonic guard give predictable, safe motion. Separate web panels let the shopper control the cart from their own phone, and a dedicated billing ESP32 reads tags, looks products up in Firebase and shows the live bill.</p>
+      <p>In testing the cart held a mean standoff of 0.46 m, stopped 31 cm from obstacles with no collisions, and re-acquired its user in 90% of occlusion trials. These results show that a practical follow-me shopping cart can be built from low-cost parts without a GPU, LiDAR, or a beacon carried by the user.</p>
+    </section>
+  </article>
+</div>
+
+<footer>© <span id="yr">2026</span> Hein Zin · <a href="index.html">Back to portfolio</a></footer>
+
+<script>
+(function(){
+  var root=document.documentElement, btn=document.getElementById('themeBtn');
+  try{var saved=localStorage.getItem('theme'); if(saved) root.setAttribute('data-theme',saved);}catch(e){}
+  btn.addEventListener('click',function(){
+    var cur=root.getAttribute('data-theme');
+    if(!cur){cur=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
+    var next=cur==='dark'?'light':'dark';
+    root.setAttribute('data-theme',next);
+    try{localStorage.setItem('theme',next);}catch(e){}
+  });
+  document.getElementById('yr').textContent=new Date().getFullYear();
+})();
+</script>
+</body>
+</html>

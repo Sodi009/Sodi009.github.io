@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hein Zin — Computer Engineering</title>
+<meta name="description" content="Hein Zin, Computer Engineering graduate of Assumption University, Thailand. Embedded systems, IoT, networking and smart automation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F7F8FA; --surface:#FFFFFF; --ink:#17202E; --muted:#5A6474;
+  --line:#DDE2E8; --board:#1F6B4F; --board-soft:#E6F0EB; --signal:#2F5BD3;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#10151D; --surface:#171E28; --ink:#E7EBF0; --muted:#98A2B3;
+    --line:#2A3441; --board:#5CC39A; --board-soft:#16302A; --signal:#7C9BFF;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#10151D; --surface:#171E28; --ink:#E7EBF0; --muted:#98A2B3;
+  --line:#2A3441; --board:#5CC39A; --board-soft:#16302A; --signal:#7C9BFF;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-behavior:smooth;scroll-padding-top:calc(env(safe-area-inset-top,0px) + 72px)}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font:400 17px/1.6 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:"IBM Plex Sans Condensed","Arial Narrow",system-ui,sans-serif;line-height:1.1;margin:0}
+a{color:var(--board)}
+a:focus-visible,button:focus-visible{outline:3px solid var(--signal);outline-offset:3px;border-radius:4px}
+img,svg{max-width:100%}
+.wrap{max-width:1040px;margin:0 auto;padding:0 24px}
+
+/* nav */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--paper);border-bottom:1px solid var(--line)}
+header .wrap{display:flex;align-items:center;justify-content:space-between;height:60px;gap:16px}
+.mark{font-family:"IBM Plex Sans Condensed",sans-serif;font-weight:700;font-size:20px;text-decoration:none;color:var(--ink)}
+nav{display:flex;gap:20px;align-items:center}
+nav a{color:var(--muted);text-decoration:none;font-size:15px}
+nav a:hover{color:var(--ink)}
+.theme{background:none;border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:4px 10px;font:inherit;font-size:14px;cursor:pointer}
+@media (max-width:560px){nav a.hide-sm{display:none}}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;padding:80px 24px 72px}
+.me{margin:0;width:100%}
+.me img{display:block;width:100%;height:auto;border-radius:18px;image-rendering:auto;border:1px solid var(--line)}
+.me figcaption{font-size:14px;color:var(--muted);margin-top:10px}
+.mail{display:inline-block;margin-top:18px;font-size:16px;color:var(--muted)}
+.mail a{color:var(--ink);font-weight:500}
+.hero h1{font-size:clamp(44px,7vw,84px);font-weight:700;letter-spacing:-.01em;max-width:14ch}
+.hero p.lede{font-size:20px;color:var(--muted);max-width:34ch;margin:20px 0 28px}
+.cta{display:flex;flex-wrap:wrap;gap:12px}
+.btn{display:inline-block;padding:11px 18px;border-radius:8px;text-decoration:none;font-weight:500;font-size:16px}
+.btn.primary{background:var(--board);color:var(--paper)}
+.btn.ghost{border:1px solid var(--line);color:var(--ink)}
+.figure{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}
+.figure figcaption{font-size:14px;color:var(--muted);margin-top:10px}
+.readout{font-weight:600;color:var(--board)}
+@media (max-width:820px){.hero{grid-template-columns:1fr;gap:32px;padding:48px 24px 48px}.me{order:-1}}
+
+/* sections */
+section.block{padding:56px 0;border-top:1px solid var(--line)}
+section.block>.wrap>h2{font-size:34px;margin-bottom:28px}
+.featured{display:grid;grid-template-columns:1fr 1fr;gap:40px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:32px}
+.featured h3{font-size:30px;margin-bottom:6px}
+.tag{display:inline-block;font-size:13px;font-weight:500;color:var(--board);background:var(--board-soft);border-radius:999px;padding:2px 10px;margin-bottom:14px}
+.featured p{margin:0 0 14px;max-width:60ch}
+.layers{margin:0;padding:0;list-style:none;border-left:2px solid var(--board)}
+.layers li{padding:0 0 18px 18px;position:relative}
+.layers li:last-child{padding-bottom:0}
+.layers li::before{content:"";position:absolute;left:-7px;top:8px;width:12px;height:12px;border-radius:50%;background:var(--surface);border:2px solid var(--board)}
+.layers strong{display:block;font-weight:600}
+.layers span{color:var(--muted);font-size:15px}
+@media (max-width:820px){.featured{grid-template-columns:1fr;padding:24px}}
+
+.rows{margin-top:28px}
+.row{display:grid;grid-template-columns:220px 1fr;gap:24px;padding:22px 0;border-bottom:1px solid var(--line)}
+.row h3{font-size:22px}
+.row p{margin:0;max-width:62ch}
+.row .stack{color:var(--muted);font-size:15px;margin-top:6px}
+@media (max-width:640px){.row{grid-template-columns:1fr;gap:8px}}
+
+.skills{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:28px}
+.skills h3{font-size:20px;margin-bottom:8px}
+.skills p{margin:0;color:var(--muted);font-size:16px}
+
+.about{max-width:64ch}
+.about p{margin:0 0 14px}
+
+.contact{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px;align-items:flex-start}
+.icon-btn{display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:50%;border:1px solid var(--line);color:var(--ink);font-size:22px;text-decoration:none;background:var(--surface)}
+.icon-btn:hover{border-color:var(--board);color:var(--board)}
+footer{padding:32px 0 48px;color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
+
+.photo{margin:0}
+.photo img{display:block;width:100%;max-height:560px;object-fit:cover;object-position:center 30%;border-radius:14px;border:1px solid var(--line)}
+.photo figcaption{font-size:14px;color:var(--muted);margin-top:10px}
+.results{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0;border:1px solid var(--line);border-radius:10px;margin:22px 0 0;overflow:hidden}
+.results div{padding:14px 16px;border-right:1px solid var(--line)}
+.results div:last-child{border-right:0}
+.results b{display:block;font-family:"IBM Plex Sans Condensed",sans-serif;font-size:24px;font-weight:600;color:var(--board)}
+.results span{font-size:14px;color:var(--muted)}
+@media (max-width:640px){.results div{border-right:0;border-bottom:1px solid var(--line)}.results div:last-child{border-bottom:0}}
+.shots{display:grid;grid-template-columns:1fr 2.2fr;gap:20px;margin-top:28px;align-items:start}
+.shots figure{margin:0}
+.shots img{display:block;width:100%;border-radius:10px;border:1px solid var(--line)}
+.shots figcaption{font-size:14px;color:var(--muted);margin-top:8px}
+@media (max-width:640px){.shots{grid-template-columns:1fr}.shots figure:first-child img{max-width:260px}}
+.evolve{list-style:none;margin:28px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:20px;counter-reset:v}
+.evolve li{counter-increment:v;border-top:3px solid var(--line);padding-top:12px}
+.evolve li:last-child{border-top-color:var(--board)}
+.evolve li::before{content:"Version " counter(v);display:block;font-size:13px;color:var(--muted)}
+.evolve strong{display:block;font-weight:600;margin:2px 0 4px}
+.evolve span{font-size:15px;color:var(--muted)}
+@media (max-width:720px){.evolve{grid-template-columns:1fr}}
+.credit{font-size:15px;color:var(--muted);margin-top:22px}
+/* the one moving thing */
+</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/solid.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/brands.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/fontawesome.min.js"></script>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <a class="mark" href="#top">Hein Zin</a>
+    <nav aria-label="Main">
+      <a href="#projects">Projects</a>
+      <a class="hide-sm" href="#experience">Experience</a>
+      <a class="hide-sm" href="#skills">Skills</a>
+      <a class="hide-sm" href="#about">About</a>
+      <a href="#contact">Contact</a>
+      <button class="theme" id="themeBtn" type="button" aria-label="Switch colour theme">Theme</button>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <div class="wrap hero">
+    <div>
+      <h1>I build machines that know where you are.</h1>
+      <p class="lede">I'm Hein Zin, an Electrical and Computer Engineering graduate of Assumption University, Thailand. I work on embedded systems, IoT, networking and smart automation, from the circuit board to the app in your hand.</p>
+      <div class="cta">
+        <a class="btn primary" href="#projects">See my projects</a>
+        <a class="btn ghost" href="#contact">Get in touch</a>
+      </div>
+    </div>
+    <figure class="me">
+      <img id="mePhoto" src="me.jpg" alt="Hein Zin smiling in a navy engineering shirt on the main avenue of Assumption University's Suvarnabhumi campus" width="941" height="941">
+      <figcaption>At ABAC's Suvarnabhumi campus.</figcaption>
+    </figure>
+
+  </div>
+
+  <section class="block" id="projects">
+    <div class="wrap">
+      <h2>Projects</h2>
+
+      <article class="featured">
+        <div>
+          <span class="tag">Senior project, 2026</span>
+          <h3>Smart Cart</h3>
+          <p>A shopping cart that follows you through the store and bills your items automatically. Scan the QR code on the cart, tap "This is me" on your phone, and walk. The cart keeps 40 cm behind you, steers around obstacles, and adds each tagged product to your bill as you drop it in.</p>
+          <p>Everything runs on the cart with no GPU and no cloud vision: a Raspberry Pi 5 does the seeing and deciding, and three ESP32 boards handle motors, sensors and billing.</p>
+          <p style="color:var(--muted);font-size:15px;margin:0">Raspberry Pi 5, ESP32, YOLOv8n, ByteTrack, Orbbec Astra Pro RGB-D, UHF RFID, Firebase, Flask, Tailscale</p>
+        </div>
+        <ol class="layers" aria-label="System layers, from sensing to the shopper">
+          <li><strong>See</strong><span>YOLOv8n in NCNN format finds people at 15–17 fps on the Pi's CPU. Depth from the RGB-D camera gives real distance in meters, and a colour-and-height check re-finds the right person after they're blocked.</span></li>
+          <li><strong>Decide</strong><span>A four-state controller (idle, armed, following, searching) sets speed and steering, holds still while you browse a shelf, and plans around obstacles with a vector field histogram.</span></li>
+          <li><strong>Move safely</strong><span>An ESP32 runs the motors with encoder and gyro feedback. A second reads five ultrasonic sensors, which can stop the cart whatever the camera says.</span></li>
+          <li><strong>Bill</strong><span>A third ESP32 reads UHF RFID tags in the basket, looks each product up in Firebase, and never bills the same tag twice.</span></li>
+          <li><strong>Control</strong><span>The shopper's panel opens from a QR code on any phone over public HTTPS, protected by a token. A private admin dashboard shows the camera, live charts and diagnostics.</span></li>
+        </ol>
+      </article>
+
+      <div class="results" aria-label="Test results">
+        <div><b>0</b><span>collisions in 25 obstacle trials</span></div>
+        <div><b>90%</b><span>of lost users found again</span></div>
+        <div><b>0.46 m</b><span>average following distance, target 0.4 m</span></div>
+        <div><b>15–17 fps</b><span>person detection, CPU only</span></div>
+      </div>
+
+      <h3 style="font-size:22px;margin-top:40px">How it got here</h3>
+      <ol class="evolve">
+        <li><strong>Bluetooth signal strength</strong><span>Three ESP32s measured a beacon's signal to find the user's direction. Body blocking and reflections made the readings swing from -60 to -100 dBm, too noisy to steer by.</span></li>
+        <li><strong>Cart-X</strong><span>A camera tracker on a mecanum-wheel base with a Flutter app over BLE. It worked indoors, but had no real distance, drifted onto other people, and had no obstacle protection.</span></li>
+        <li><strong>Smart Cart</strong><span>Rebuilt around depth sensing and person detection, with a differential drive, ultrasonic safety layer, RFID billing and phone web panels.</span></li>
+      </ol>
+
+      <p style="margin-top:28px"><a class="btn primary" href="smart-cart.html">Read the full report</a></p>
+
+      <p class="credit">Built with Hein Su Aung, Khant Min Lu and Myat Bhone Paing. Advised by Dr. Amulya Bhattarai and Mr. Krid Sakunkawinkorn, Vincent Mary School of Engineering.</p>
+
+      <div style="height:12px"></div>
+
+      <div class="rows">
+        <div class="row">
+          <div><h3>ABAC Flood Watch</h3><p class="stack">September 2026</p></div>
+          <div>
+            <p><strong>Why I made it.</strong> In late September 2026, days of heavy rain flooded the roads around ABAC's Suvarnabhumi campus. Many of us live in condos nearby, and the only way to know whether your soi was passable was to scroll through group chats or walk out and look. I wanted one page where any student could see the water level outside every condo at a glance, and add their own in a few seconds.</p>
+            <p style="margin-top:12px"><strong>What it does.</strong> Students add their condo and pick what they see outside, from "Dry" to "Entrance cut off", with an optional short note. Every phone viewing the page updates in real time. Reports older than six hours are marked as old, and Thai emergency numbers are one tap away at the bottom.</p>
+            <p style="margin-top:12px"><strong>How it's built.</strong> A single HTML file backed by Firebase Firestore, with anonymous sign-in so nobody needs an account, and security rules that check every field and block deleting other people's reports.</p>
+            <p class="stack">JavaScript, Firebase Firestore, Firebase Auth</p>
+            <p style="margin-top:14px"><a class="btn ghost" href="https://abac-flood-watch.netlify.app" target="_blank" rel="noopener">View live site</a></p>
+          </div>
+        </div>
+        <div class="row">
+          <div><h3>Coffee bean quality classification</h3><p class="stack">CE4715 Artificial Intelligence, 2026</p></div>
+          <div>
+            <p>I'm a coffee enjoyer, so this AI course project was close to home. We built two models that judge coffee in different ways and put them in one desktop app with two tabs.</p>
+            <p style="margin-top:12px"><strong>Quality from taste scores.</strong> Trained on 1,517 real coffee samples, merged from a 2014–2016 GitHub dataset and a 2022–2023 Kaggle dataset. It predicts a Low, Medium or High quality tier from tasting scores. A search across four model types raised accuracy from an 87% baseline to 95% with logistic regression, and the app also suggests similar coffees.</p>
+            <p style="margin-top:12px"><strong>Roast level from a photo.</strong> A MobileNetV2 model fine-tuned in PyTorch on 1,600 bean photos sorts beans into green, light, medium or dark roast, live from a webcam. The first version scored 99.5% on the test set but misread real phone photos of packed beans. Adding augmentation, partial fine-tuning and synthetic "packed pile" images fixed that, at 98.5% test accuracy that holds up on real photos.</p>
+            <p class="stack">Python, scikit-learn, PyTorch, MobileNetV2, OpenCV, Tkinter</p>
+            <p class="credit" style="margin-top:10px">Team project with Swam Yee Htet, Khant Min Lu, Sit Mue Naing and Chit Hnin Phyu.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="experience">
+    <div class="wrap">
+      <h2>Experience</h2>
+      <div class="row">
+        <div><h3>MIMOSA BKK</h3><p class="stack">Nov 2025 – Jan 2026<br>Bangkok</p></div>
+        <div>
+          <p><strong>Full-stack developer and automation specialist.</strong> Designed and deployed a serverless order tracking system in Google Apps Script and JavaScript, serving 100+ active orders. Added an interactive Leaflet.js map so customers can follow international shipments, built an admin dashboard in HTML, CSS and Bootstrap for inventory and order updates, and tuned the Google Sheets lookups to keep search fast.</p>
+          <p>I also built the shop's website, <a href="https://www.mimosabkkcollection.com" target="_blank" rel="noopener">mimosabkkcollection.com</a>, where customers browse Bangkok fashion, send their bag as a WhatsApp order, and track delivery to Dubai.</p>
+          <p class="stack">Google Apps Script, JavaScript, Leaflet.js, Bootstrap, Google Sheets</p>
+          <p style="margin-top:14px"><a class="btn ghost" href="https://www.mimosabkkcollection.com" target="_blank" rel="noopener">View live site</a></p>
+        </div>
+      </div>
+      <div class="row">
+        <div><h3>Collective World</h3><p class="stack">2020 – 2022<br>Myanmar</p></div>
+        <div>
+          <p><strong>Game tournament organizer and match broadcaster.</strong> Ran online Valorant tournaments end to end: scheduling, team coordination, rules and brackets. Broadcast live matches with overlays and commentary, and managed the community on Facebook and Discord.</p>
+          <p class="stack">Event hosting, live broadcasting, community management</p>
+        </div>
+      </div>
+
+      <h2 style="margin-top:48px">Education</h2>
+      <div class="row">
+        <div><h3>Assumption University</h3><p class="stack">2023 – 2026<br>Thailand</p></div>
+        <div><p>Bachelor of Engineering, Computer Engineering. Vincent Mary School of Engineering.</p></div>
+      </div>
+      <div class="row">
+        <div><h3>Info Myanmar University</h3><p class="stack">2018 – 2020<br>Yangon, Myanmar</p></div>
+        <div><p>Higher National Diploma, Network Engineering.</p></div>
+      </div>
+      <div class="row">
+        <div><h3>B.E.H.S. (2) Lanmadaw</h3><p class="stack">2006 – 2016<br>Yangon, Myanmar</p></div>
+        <div><p>High school.</p></div>
+      </div>
+
+      <h2 style="margin-top:48px">Certifications</h2>
+      <div class="row">
+        <div><h3>Networking</h3></div>
+        <div><p>Computer Networks Security from Scratch to Advanced</p></div>
+      </div>
+      <div class="row">
+        <div><h3>Exchange</h3></div>
+        <div><p>Technology, Engineering and Culture Exchange Program</p></div>
+      </div>
+      <div class="row">
+        <div><h3>Aviation</h3></div>
+        <div><p>Flight Experience and Basic Aviation Knowledge</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="skills">
+    <div class="wrap">
+      <h2>What I work with</h2>
+      <div class="skills">
+        <div><h3>Hardware</h3><p>ESP32, Raspberry Pi 5, motor drivers, ultrasonic sensors, UHF RFID, power distribution, wiring and debugging on the bench. Basic 3D modelling in SolidWorks.</p></div>
+        <div><h3>Firmware</h3><p>Arduino / C++ on ESP32, motor control with encoders and IMU, I2C and UART devices, serial protocols, ESP-NOW and BLE.</p></div>
+        <div><h3>Vision and robotics</h3><p>YOLOv8, ByteTrack, OpenCV, RGB-D depth, state machines, obstacle avoidance, MATLAB simulation.</p></div>
+        <div><h3>Apps</h3><p>Flutter and Dart, iOS deployment, Bluetooth integration, clean design systems.</p></div>
+        <div><h3>Web and tools</h3><p>Python, Flask, JavaScript, HTML/CSS, Bootstrap, Leaflet.js, Firebase, Google Apps Script, Git.</p></div>
+        <div><h3>Networking</h3><p>Network engineering and security fundamentals, Tailscale, ESP-NOW and BLE links.</p></div>
+        <div><h3>People</h3><p>Teamwork, event hosting, live broadcasting.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="about">
+    <div class="wrap about">
+      <h2 style="font-size:34px;margin-bottom:20px">About</h2>
+      <p>I grew up in Yangon, Myanmar, and finished high school at B.E.H.S. (2) Lanmadaw in 2016. I earned my Higher National Diploma in Network Engineering at Info Myanmar University in 2020 and planned to go straight on to a bachelor's degree there. Then COVID-19 arrived, and I had to put my studies on hold.</p>
+      <p>While I was waiting to continue, the 2021 military coup in Myanmar changed everything. So I made a new plan, and in 2023 I started Computer Engineering at Assumption University in Thailand. It took longer than I expected, but I've now finished my degree.</p>
+      <p>Outside class I've also done a flight experience and basic aviation course and a technology, engineering and culture exchange program.</p>
+      <p>I'm also a coffee enjoyer. That's how I ended up training a model to tell a light roast from a dark one.</p>
+    </div>
+  </section>
+
+  <section class="block" id="contact">
+    <div class="wrap">
+      <h2 style="font-size:34px;margin-bottom:20px">Contact</h2>
+      <div class="contact">
+        <a class="icon-btn" href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=heinzin.10401@gmail.com&amp;su=Hello%20from%20your%20portfolio" target="_blank" rel="noopener" aria-label="Email me" title="Email me"><i class="fa-solid fa-envelope" aria-hidden="true"></i></a>
+        <a class="icon-btn" href="https://github.com/Sodi009" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"><i class="fa-brands fa-github" aria-hidden="true"></i></a>
+        <a class="icon-btn" href="https://www.linkedin.com/in/hein-zin-4a0910338/" target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn"><i class="fa-brands fa-linkedin-in" aria-hidden="true"></i></a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">© <span id="yr">2026</span> Hein Zin</div>
+</footer>
+
+<script>
+(function(){
+  var root=document.documentElement, btn=document.getElementById('themeBtn');
+  try{var saved=localStorage.getItem('theme'); if(saved) root.setAttribute('data-theme',saved);}catch(e){}
+  btn.addEventListener('click',function(){
+    var cur=root.getAttribute('data-theme');
+    if(!cur){cur=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}
+    var next=cur==='dark'?'light':'dark';
+    root.setAttribute('data-theme',next);
+    try{localStorage.setItem('theme',next);}catch(e){}
+  });
+  document.getElementById('yr').textContent=new Date().getFullYear();
+})();
+</script>
+</body>
+</html>
